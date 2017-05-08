@@ -1,0 +1,18 @@
+<div>
+    <form data-dojo-attach-point="form">
+        <div class="form-group">
+            <label class='control-label' for='${id}_inputRoute'>Route</label>
+            <input type="text" class='form-control' data-dojo-attach-point='routeTxt' id='${id}_inputRoute'>
+            <span class='help-block'>Required!</span>
+        </div>
+        <div class="form-group">
+            <label class='control-label' for='${id}_inputMilepost'>Milepost</label>
+            <input type="text" class='form-control' data-dojo-attach-point='milepostTxt' id='${id}_inputMilepost'>
+            <span class="help-block">Required!</span>
+        </div>
+        <div class="form-group">
+            <button type='submit' class='btn btn-default' data-dojo-attach-point="findBtn">Find</button>
+            <span data-dojo-attach-point='errorMsg' class="help-block">No match found!</span>
+        </div>
+    </form>
+</div>

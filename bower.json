@@ -1,0 +1,24 @@
+{
+  "name": "dart-board",
+  "description": "Widgets for using AGRC's geocoding services.",
+  "main": "FindAddress.js",
+  "authors": [
+    "Scott Davis <stdavis@utah.gov>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/agrc-widgets/dart-board",
+  "ignore": [
+    "node_modules",
+    "bower_components",
+    "_src",
+    "tests",
+    "Gruntfile.js"
+  ],
+  "dependencies": {
+    "esri": "arcgis-js-api#^4.3.1"
+  },
+  "devDependencies": {
+    "jasmine-jsreporter": "~0.1",
+    "jasmine-favicon-reporter": "*"
+  },
+}
