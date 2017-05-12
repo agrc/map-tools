@@ -10,6 +10,7 @@
     },
     "plugins": ["html"],
     "rules": {
+        "semi": 2,
         "no-bitwise": 2,
         "curly": [
             2,

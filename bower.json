@@ -19,6 +19,12 @@
   },
   "devDependencies": {
     "jasmine-jsreporter": "~0.1",
-    "jasmine-favicon-reporter": "*"
+    "jasmine-favicon-reporter": "*",
+    "bootstrap": "^3.3.6"
   },
+  "resolutions": {
+    "dijit": "v1.12.1/esri-3.20.0",
+    "dojox": "v1.12.1/esri-3.20.0",
+    "dojo": "v1.12.1/esri-3.20.0"
+  }
 }

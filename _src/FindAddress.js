@@ -1,72 +1,54 @@
 define([
-    'dojo/text!./templates/FindAddress.html',
-
-    'dojo/_base/declare',
-    'dojo/_base/Color',
-    'dojo/_base/lang',
-    'dojo/_base/array',
+    'dijit/_TemplatedMixin',
+    'dijit/_WidgetBase',
 
     'dojo/dom-class',
-
-    'dojo/query',
-    'dojo/topic',
     'dojo/on',
+    'dojo/query',
     'dojo/string',
+    'dojo/text!./resources/templates/FindAddress.html',
+    'dojo/topic',
+    'dojo/_base/array',
+    'dojo/_base/declare',
+    'dojo/_base/lang',
 
-    'dijit/_WidgetBase',
-    'dijit/_TemplatedMixin',
-
-    'esri/symbols/SimpleMarkerSymbol',
+    'esri/config',
     'esri/geometry/Point',
-    'esri/geometry/scaleUtils',
-    'esri/graphic',
+    'esri/geometry/SpatialReference',
+    'esri/Graphic',
+    'esri/layers/GraphicsLayer',
     'esri/request',
-    'esri/SpatialReference'
+    'esri/symbols/SimpleMarkerSymbol'
 ], function (
-    template,
-
-    declare,
-    Color,
-    lang,
-    array,
+    _TemplatedMixin,
+    _WidgetBase,
 
     domClass,
-
-    query,
-    topic,
     on,
+    query,
     dojoString,
+    template,
+    topic,
+    array,
+    declare,
+    lang,
 
-    _WidgetBase,
-    _TemplatedMixin,
-
-    SimpleMarkerSymbol,
+    esriConfig,
     Point,
-    scaleUtils,
+    SpatialReference,
     Graphic,
+    GraphicsLayer,
     esriRequest,
-    SpatialReference
-    ) {
+    SimpleMarkerSymbol
+) {
     // description:
-    //      **Summary**: A simple form tied to the map allowing a user to quickly zoom to an address.
-    //      <p>
-    //      **Owner(s)**: Scott Davis, Steve Gourley
-    //      </p>
-    //      <p>
-    //      **Test Page**: <a href='/tests/dojo/agrc/1.0/agrc/widgets/tests/FindAddressTests.html' target='_blank'>
-    //          agrc.widgets.map.FindAddress.Tests</a>
-    //      </p>
-    //      <p>
-    //      **Description**:
-    //      This widget hits the [agrc geocoding web service](http://gis.utah.gov/web-services/address-geolocator-2).
-    //      </p>
-    //      <p>
+    //      A simple form tied to the map allowing a user to quickly zoom to an address.
     //      **Published Topics**:
     //      </p>
     //      <ul>
-    //          <li>agrc.widgets.locate.FindAddress.OnFindStart[none]</li>
-    //          <li>agrc.widgets.locate.FindAddress.OnFind[result]</li>
-    //          <li>agrc.widgets.locate.FindAddress.OnFindError[err]</li>
+    //          <li>dart-board.FindAddress.OnFindStart[none]</li>
+    //          <li>dart-board.FindAddress.OnFind[result]</li>
+    //          <li>dart-board.FindAddress.OnFindError[err]</li>
     //      </ul>
     //      **Exceptions**:
     //      </p>
@@ -74,10 +56,11 @@ define([
     //      <p>
     //      **Required Files**:
     //      </p>
-    //      <ul><li>resources/locate/FindAddress.css</li></ul>
+    //      <ul><li>resources/FindAddress.css</li></ul>
     //
     // example:
-    // |    new FindAddress({map: map}, 'test1');
+    // |    new FindAddress({mapView: mapView}, 'test1');
+    var defaultSpatialReference = 3857;
 
     return declare([_WidgetBase, _TemplatedMixin], {
         templateString: template,
@@ -98,9 +81,10 @@ define([
         constructor: function () {
             // summary:
             //      first function to fire after page loads
-            console.info('agrc.widgets.locate.FindAddress::constructor', arguments);
-        },
+            console.info('dart-board.FindAddress:constructor', arguments);
 
+            esriConfig.request.corsEnabledServers.push('api.mapserv.utah.gov');
+        },
         postMixInProperties: function () {
             // summary:
             //      postMixin properties like symbol and graphics layer
@@ -108,34 +92,36 @@ define([
             //      decide whether to use default graphics layer and symbol
             // tags:
             //      public
-            console.info('agrc.widgets.locate.FindAddress::postMixInProperties', arguments);
+            console.info('dart-board.FindAddress:postMixInProperties', arguments);
 
-            // default to use the map's graphics layer if none was passed in
-            if (!this.graphicsLayer && !! this.map) {
-                // handle race condition
-                if (this.map.loaded) {
-                    this.graphicsLayer = this.map.graphics;
-                } else {
-                    this.connect(this.map, 'onLoad', function () {
-                        this.graphicsLayer = this.map.graphics;
+            if (this.mapView) {
+                // default to use the map's graphics layer if none was passed in
+                if (!this.graphicsLayer) {
+                    this.graphicsLayer = new GraphicsLayer();
+                    this.mapView.map.add(this.graphicsLayer);
+                }
+
+                // create symbol if none was provided in options
+                if (!this.symbol) {
+                    this.symbol = new SimpleMarkerSymbol({
+                        style: 'diamond',
+                        color: [255, 0, 0, 0.5]
                     });
                 }
-            }
 
-            // create symbol if none was provided in options
-            if (!this.symbol && !! this.map) {
-                this.symbol = new SimpleMarkerSymbol();
-                this.symbol.setStyle(SimpleMarkerSymbol.STYLE_DIAMOND);
-                this.symbol.setColor(new Color([255, 0, 0, 0.5]));
-            }
-
-            if (!this.wkid) {
-                this.wkid = (this.map) ? this.map.spatialReference.wkid : 26912;
+                this.mapView.then(() => {
+                    if (!this.wkid) {
+                        this.wkid = (this.mapView) ? this.mapView.spatialReference.wkid : defaultSpatialReference;
+                    }
+                });
+            } else {
+                if (!this.wkid) {
+                    this.wkid = defaultSpatialReference;
+                }
             }
         },
-
         postCreate: function () {
-            console.info('agrc.widgets.locate.FindAddress::postCreate', arguments);
+            console.info('dart-board.FindAddress:postCreate', arguments);
 
             this.formGeocode.onsubmit = function () {
                 return false;
@@ -150,18 +136,18 @@ define([
         geocodeAddress: function () {
             // summary:
             //      Geocodes the address if the text boxes validate.
-            console.info('agrc.widgets.locate.FindAddress::geocodeAddress', arguments);
+            console.info('dart-board.FindAddress:geocodeAddress', arguments);
 
             if (!this._validate()) {
                 this._done();
                 return false;
             }
 
-            topic.publish('agrc.widgets.locate.FindAddress.OnFindStart');
+            topic.publish('dart-board.FindAddress.OnFindStart');
 
             this._geocoding();
 
-            if (this.map && this._graphic) {
+            if (this.mapView && this._graphic) {
                 this.graphicsLayer.remove(this._graphic);
             }
 
@@ -182,7 +168,6 @@ define([
 
             return false;
         },
-
         _invokeWebService: function (geocode) {
             // summary:
             //      calls the web service
@@ -192,26 +177,20 @@ define([
             //      private
             // returns:
             //     Deferred
-            console.info('agrc.widgets.locate.FindAddress::_invokeWebService', arguments);
+            console.info('dart-board.FindAddress:_invokeWebService', arguments);
 
-            var url = '//api.mapserv.utah.gov/api/v1/Geocode/{geocode.street}/{geocode.zone}';
+            var url = `//api.mapserv.utah.gov/api/v1/Geocode/${geocode.street}/${geocode.zone}`;
 
             var options = {
                 apiKey: this.apiKey,
                 spatialReference: this.wkid
             };
 
-            url = lang.replace(url, {
-                geocode: geocode
-            });
-
-            return esriRequest({
-                url: url,
-                content: options,
-                callbackParamName: 'callback'
+            return esriRequest(url, {
+                query: options,
+                handleAs: 'json'
             });
         },
-
         _validate: function () {
             // summary:
             //      validates the widget
@@ -221,7 +200,7 @@ define([
             //      private
             // returns:
             //      bool
-            console.info('agrc.widgets.locate.FindAddress::_validate', arguments);
+            console.info('dart-board.FindAddress:_validate', arguments);
 
             var that = this;
 
@@ -232,12 +211,11 @@ define([
                 return that._isValid(tb);
             });
         },
-
         _isValid: function (textBox) {
             // summary:
             //      validates that there are values in the textbox
             // textBox: TextBox Element
-            console.log('agrc.widgets.locate.FindAddress::_isValid', arguments);
+            console.log('dart-board.FindAddress:_isValid', arguments);
 
             var valid = dojoString.trim(textBox.value).length > 0;
 
@@ -247,19 +225,15 @@ define([
 
             return valid;
         },
-
         _geocoding: function () {
 
         },
-
         _done: function () {
 
         },
-
         onFind: function () {
 
         },
-
         _onFind: function (response) {
             // summary:
             //      handles a successful geocode
@@ -267,45 +241,45 @@ define([
             //      zooms the map if there is one. publishes the result
             // tags:
             //      private
-            console.info('agrc.widgets.locate.FindAddress::_onFind', arguments);
+            console.info('dart-board.FindAddress:_onFind', arguments);
 
-            if (response.status === 200) {
-                this.onFind(response.result);
+            if (response.data.status === 200) {
+                this.onFind(response.data.result);
 
-                if (this.map) {
-                    var point = new Point(
-                        response.result.location.x,
-                        response.result.location.y,
-                        new SpatialReference({
-                            wkid: this.wkid
-                        })
-                    );
+                if (this.mapView) {
+                    var point = new Point({
+                        x: response.data.result.location.x,
+                        y: response.data.result.location.y,
+                        spatialReference: {wkid: this.wkid}
+                    });
 
-                    if (this.map.getLevel() > -1) {
-                        this.map.centerAndZoom(point, this.zoomLevel);
+                    if (this.mapView.zoom > -1) {
+                        this.mapView.center = point;
+                        this.mapView.zoom = this.zoomLevel;
                     } else {
-                        this.map.centerAndZoom(
-                            point,
-                            scaleUtils.getScale(
-                                this.map.extent,
-                                this.map.width,
-                                this.wkid
-                            ) / this.zoomLevel
-                        );
+                        this.mapView.center = point;
+                        this.mapView.scale = this.mapView.scale / this.zoomLevel;
                     }
 
-                    this._graphic = new Graphic(point, this.symbol, response.result);
+                    var symbol = new SimpleMarkerSymbol({
+                        style: 'diamond',
+                        color: [255, 0, 0, 0.5]
+                    });
+                    this._graphic = new Graphic({
+                        geometry: point,
+                        symbol: symbol
+                        // attributes: response.data.result
+                    });
                     this.graphicsLayer.add(this._graphic);
                 }
 
                 this._done();
 
-                topic.publish('agrc.widgets.locate.FindAddress.OnFind', [response.result]);
+                topic.publish('dart-board.FindAddress.OnFind', [response.data.result]);
             } else {
                 this._onError();
             }
         },
-
         _onError: function (err) {
             // summary:
             //      handles script io geocoding error
@@ -315,14 +289,14 @@ define([
             //      private
             // returns:
             //
-            console.info('agrc.widgets.locate.FindAddress::_onError', arguments);
+            console.info('dart-board.FindAddress:_onError', arguments);
 
             domClass.add(this.errorMsg.parentElement, 'has-error');
 
             // re-enable find button
             this._done();
 
-            topic.publish('agrc.widgets.locate.FindAddress.OnFindError', [err]);
+            topic.publish('dart-board.FindAddress.OnFindError', [err]);
         }
     });
 });

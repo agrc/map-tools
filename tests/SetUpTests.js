@@ -3,7 +3,7 @@ window.dojoConfig = {
     baseUrl: './',
     packages: [
         {
-            name: 'map-tools',
+            name: 'dart-board',
             location: '.'
         }, {
             name: 'dojo',

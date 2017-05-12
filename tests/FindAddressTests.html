@@ -8,61 +8,67 @@
         <meta name="keywords" content="agrc.widgets.locate.FindAddress, find address, geocode, utah, tests, test, javascript" />
 
         <!-- CSS -->
-        <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.4/js/dojo/dijit/themes/claro/claro.css">
-        <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.4/js/esri/css/esri.css">
-        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.css">
+        <link rel="stylesheet" href="../bower_components/esri/css/main.css">
         <style type='text/css'>
-            @import '../../../resources/locate/FindAddress.css';
+            @import '../resources/FindAddress.css';
 
+            body {
+                padding: 25px;
+            }
             #mapDiv {
-                width: 400px;
-                height: 250px;
+                width: 600px;
+                height: 450px;
                 border: 1px solid gray;
+            }
+            .find-address {
+                width: 300px;
             }
         </style>
 
         <!-- JAVASCRIPT -->
-        <script type='text/javascript' src='http://serverapi.arcgisonline.com/jsapi/arcgis/3.4/'> </script>
+        <script type='text/javascript' src='../bower_components/dojo/dojo.js'></script>
         <script type='text/javascript'>
-            var projectUrl = location.pathname.replace(/\/[^\/]+$/, "") + '/';
+            var projectUrl = location.pathname.replace(/\/[^\/]+$/, '') + '/';
 
             require({
                 packages: [{
-                    name: 'agrc',
-                    location: projectUrl + '../../..'
+                    name: 'dart-board',
+                    location: projectUrl + '../'
+                }, {
+                    name: 'esri',
+                    location: projectUrl + '../bower_components/esri'
                 }]
-            },
-            [
-                'agrc/widgets/locate/FindAddress',
-                'dojo/_base/kernel',
+            }, [
+                'dart-board/FindAddress',
 
-                'dijit/layout/BorderContainer',
-                'dijit/layout/ContentPane',
+                'esri/Map',
+                'esri/views/MapView',
+
                 'dojo/domReady!'
-            ], 
-            function(
-                find, 
-                kernal
+            ], function (
+                FindAddress,
+
+                Map,
+                MapView
                 ) {
-                kernal.global.base = new esri.layers.ArcGISTiledMapServiceLayer("http://mapserv.utah.gov/arcgis/rest/services/BaseMaps/Vector/MapServer", 
-                    {
-                        id: "vector",
-                        visible: true
-                    });
+                var map = new Map({basemap: 'streets'});
+                var mapView = new MapView({
+                    map,
+                    container: 'mapDiv'
+                });
 
-                var map = new esri.Map('mapDiv');
-                map.addLayer(base);
-
-                var geocode = new find({ 
-                    map: map, 
-                    apiKey: 'AGRC-ApiExplorer'
+                new FindAddress({
+                    mapView,
+                    apiKey: 'AGRC-63E1FF17767822',
+                    wkid: 3857
                 }, 'findAddressDiv');
             });
         </script>
     </head>
     <body>
         <h3>
-            agrc/widgets/locate/FindAddress
+            dart-board/FindAddress
         </h3>
         <div id="findAddressDiv"></div>
         <div id="mapDiv"></div>
