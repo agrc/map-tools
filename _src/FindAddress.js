@@ -16,7 +16,6 @@ define([
     'esri/geometry/Point',
     'esri/geometry/SpatialReference',
     'esri/Graphic',
-    'esri/layers/GraphicsLayer',
     'esri/request',
     'esri/symbols/SimpleMarkerSymbol'
 ], function (
@@ -37,7 +36,6 @@ define([
     Point,
     SpatialReference,
     Graphic,
-    GraphicsLayer,
     esriRequest,
     SimpleMarkerSymbol
 ) {
@@ -97,8 +95,7 @@ define([
             if (this.mapView) {
                 // default to use the map's graphics layer if none was passed in
                 if (!this.graphicsLayer) {
-                    this.graphicsLayer = new GraphicsLayer();
-                    this.mapView.map.add(this.graphicsLayer);
+                    this.graphicsLayer = this.mapView.graphics;
                 }
 
                 // create symbol if none was provided in options

@@ -1,4 +1,4 @@
-define(['dijit/_TemplatedMixin', 'dijit/_WidgetBase', 'dojo/dom-class', 'dojo/on', 'dojo/query', 'dojo/string', 'dojo/text!./resources/templates/FindAddress.html', 'dojo/topic', 'dojo/_base/array', 'dojo/_base/declare', 'dojo/_base/lang', 'esri/config', 'esri/geometry/Point', 'esri/geometry/SpatialReference', 'esri/Graphic', 'esri/layers/GraphicsLayer', 'esri/request', 'esri/symbols/SimpleMarkerSymbol'], function (_TemplatedMixin, _WidgetBase, domClass, on, query, dojoString, template, topic, array, declare, lang, esriConfig, Point, SpatialReference, Graphic, GraphicsLayer, esriRequest, SimpleMarkerSymbol) {
+define(['dijit/_TemplatedMixin', 'dijit/_WidgetBase', 'dojo/dom-class', 'dojo/on', 'dojo/query', 'dojo/string', 'dojo/text!./resources/templates/FindAddress.html', 'dojo/topic', 'dojo/_base/array', 'dojo/_base/declare', 'dojo/_base/lang', 'esri/config', 'esri/geometry/Point', 'esri/geometry/SpatialReference', 'esri/Graphic', 'esri/request', 'esri/symbols/SimpleMarkerSymbol'], function (_TemplatedMixin, _WidgetBase, domClass, on, query, dojoString, template, topic, array, declare, lang, esriConfig, Point, SpatialReference, Graphic, esriRequest, SimpleMarkerSymbol) {
     // description:
     //      A simple form tied to the map allowing a user to quickly zoom to an address.
     //      **Published Topics**:
@@ -57,8 +57,7 @@ define(['dijit/_TemplatedMixin', 'dijit/_WidgetBase', 'dojo/dom-class', 'dojo/on
             if (this.mapView) {
                 // default to use the map's graphics layer if none was passed in
                 if (!this.graphicsLayer) {
-                    this.graphicsLayer = new GraphicsLayer();
-                    this.mapView.map.add(this.graphicsLayer);
+                    this.graphicsLayer = this.mapView.graphics;
                 }
 
                 // create symbol if none was provided in options
