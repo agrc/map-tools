@@ -140,7 +140,9 @@ require([
                 expect(domStyle.get(widget.errorMsg, 'display')).toEqual('inline');
             });
 
-            it('should use spatialReference ctor param first', function () {
+            it('should use spatialReference constructor param first', function () {
+                widget.destroy();
+
                 widget = new FindAddress({
                     wkid: 3857
                 }).placeAt(win.body());
@@ -167,9 +169,18 @@ require([
                 });
             });
 
-            afterEach(function () {
-                mapView.destroy();
-                mapView = null;
+            afterEach(function (done) {
+                // mapView.destroy needs some extra help...
+                // https://thespatialcommunity.slack.com/archives/C0A6GD4T0/p1494006356289273
+                mapView.allLayerViews.destroy();
+                mapView.layerViewManager.empty();
+                mapView.ui.empty();
+                mapView.container.remove();
+                setTimeout(() => {
+                    mapView.destroy();
+                    mapView = null;
+                    done();
+                }, 0);
             });
 
             it('should create a default symbol if a mapView was provided', function () {
@@ -199,12 +210,11 @@ require([
                 expect(widget.graphicsLayer.id).toEqual(id);
             });
 
-            it('should zoom to a point after finding a valid address on a cached mapView', function () {
+            it('should zoom to a point after finding a valid address on a cached mapView', function (done) {
                 var point = new Point(result.data.result.location.x, result.data.result.location.y, mapView.spatialReference);
 
                 widget = new FindAddress({
-                    mapView,
-                    graphicsLayer: mapView.graphicsLayer
+                    mapView
                 }).placeAt(win.body());
                 widget.txtAddress.value = address;
                 widget.txtZone.value = zip;
@@ -218,15 +228,19 @@ require([
 
                 widget.geocodeAddress();
 
-                expect(widget.mapView.center).toEqual(point);
-                expect(widget.mapView.zoom).toEqual(12);
-                expect(widget.mapView._graphic).not.toBeNull();
+                var watchHandle = widget.mapView.watch('animation', () => {
+                    watchHandle.remove();
+
+                    expect(widget.mapView.center).toEqual(point);
+                    expect(widget.mapView.zoom).toEqual(12);
+
+                    done();
+                });
             });
 
             it('should use constructor spatialReference first', function () {
                 widget = new FindAddress({
                     mapView,
-                    graphicsLayer: mapView.graphicsLayer,
                     wkid: 10
                 }).placeAt(win.body());
 
@@ -239,8 +253,7 @@ require([
                 });
 
                 widget = new FindAddress({
-                    mapView,
-                    graphicsLayer: mapView.graphicsLayer
+                    mapView
                 }).placeAt(win.body());
 
                 mapView.then(() => {

@@ -205,11 +205,15 @@ define(['dijit/_TemplatedMixin', 'dijit/_WidgetBase', 'dojo/dom-class', 'dojo/on
                     });
 
                     if (this.mapView.zoom > -1) {
-                        this.mapView.center = point;
-                        this.mapView.zoom = this.zoomLevel;
+                        this.mapView.goTo({
+                            target: point,
+                            zoom: this.zoomLevel
+                        });
                     } else {
-                        this.mapView.center = point;
-                        this.mapView.scale = this.mapView.scale / this.zoomLevel;
+                        this.mapView.goTo({
+                            target: point,
+                            scale: this.mapView.scale / this.zoomLevel
+                        });
                     }
 
                     var symbol = new SimpleMarkerSymbol({
