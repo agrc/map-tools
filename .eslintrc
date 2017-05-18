@@ -5,7 +5,10 @@
         "amd": true,
         "node": true
     },
-    "globals": {},
+    "parserOptions": {
+        "ecmaVersion": 8
+    },
+    "plugins": ["html"],
     "rules": {
         "no-bitwise": 2,
         "curly": [
