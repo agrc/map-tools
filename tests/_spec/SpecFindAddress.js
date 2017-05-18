@@ -1,42 +1,53 @@
 require([
-    'agrc/widgets/locate/FindAddress',
-    'dojo/dom-construct',
-    'dojo/_base/window',
+    'dart-board/FindAddress',
+
     'dojo/Deferred',
+    'dojo/dom-class',
+    'dojo/dom-construct',
     'dojo/dom-style',
-    'esri/SpatialReference',
+    'dojo/query',
+    'dojo/_base/window',
+
     'esri/geometry/Extent',
     'esri/geometry/Point',
-    'dojo/query',
-    'dojo/dom-class'
-
+    'esri/geometry/SpatialReference',
+    'esri/layers/GraphicsLayer',
+    'esri/Map',
+    'esri/views/MapView'
 ], function (
     FindAddress,
-    domConstruct,
-    win,
+
     Deferred,
+    domClass,
+    domConstruct,
     domStyle,
-    SpatialReference,
+    query,
+    win,
+
     Extent,
     Point,
-    query,
-    domClass
+    SpatialReference,
+    GraphicsLayer,
+    Map,
+    MapView
 ) {
     var widget;
     var address = '123 S Main St';
     var zip = '84101';
     var result = {
-        'result': {
-            'location': {
-                'x': 424808.49945603119,
-                'y': 4513232.5811240105
+        data: {
+            'result': {
+                'location': {
+                    'x': 424808.49945603119,
+                    'y': 4513232.5811240105
+                },
+                'score': 100.0,
+                'locator': 'Centerlines.StatewideRoads',
+                'matchAddress': '123 S MAIN ST, 84101',
+                'inputAddress': '123 S Main St, 84101'
             },
-            'score': 100.0,
-            'locator': 'Centerlines.StatewideRoads',
-            'matchAddress': '123 S MAIN ST, 84101',
-            'inputAddress': '123 S Main St, 84101'
-        },
-        'status': 200
+            'status': 200
+        }
     };
 
     afterEach(function () {
@@ -51,11 +62,11 @@ require([
             beforeEach(function () {
                 widget = new FindAddress(null, domConstruct.create('div', null, win.body()));
             });
-            it('should not create a default symbol if no map was provided', function () {
+            it('should not create a default symbol if no mapView was provided', function () {
                 expect(widget.symbol).toBeNull();
             });
 
-            it('should not assign a graphics layer if no map was provided', function () {
+            it('should not assign a graphics layer if no mapView was provided', function () {
                 expect(widget.graphicsLayer).toBeNull();
             });
 
@@ -129,7 +140,9 @@ require([
                 expect(domStyle.get(widget.errorMsg, 'display')).toEqual('inline');
             });
 
-            it('should use spatialReference ctor param first', function () {
+            it('should use spatialReference constructor param first', function () {
+                widget.destroy();
+
                 widget = new FindAddress({
                     wkid: 3857
                 }).placeAt(win.body());
@@ -138,71 +151,70 @@ require([
             });
 
             it('should use default spatialReference value if not supplied', function () {
-                expect(widget.wkid).toEqual(26912);
+                expect(widget.wkid).toEqual(3857);
             });
         });
 
         describe('With Map', function () {
-            var map;
+            var mapView;
 
-            beforeEach(function () {
-                map = {
-                    graphicsLayer: {
-                        id: 'default',
-                        clear: function () {},
-                        add: function () {}
-                    },
-                    getLevel: function () {
-                        return 0;
-                    },
-                    spatialReference: new SpatialReference({
-                        wkid: 26912
-                    }),
-                    centerAndZoom: function () {},
-                    onLoad: function () {},
-                    width: 519,
-                    extent: new Extent(16816.054547375796, 4041342.5115216, 888225.5612901922, 4704553.9858249)
-                };
+            beforeEach(function (done) {
+                mapView = new MapView({
+                    map: new Map({basemap: 'streets'}),
+                    container: domConstruct.create('div', null, document.body)
+                });
+
+                mapView.then(() => {
+                    done();
+                });
             });
 
-            afterEach(function () {
-                map = null;
+            afterEach(function (done) {
+                // mapView.destroy needs some extra help...
+                // https://thespatialcommunity.slack.com/archives/C0A6GD4T0/p1494006356289273
+                mapView.allLayerViews.destroy();
+                mapView.layerViewManager.empty();
+                mapView.ui.empty();
+                mapView.container.remove();
+                setTimeout(() => {
+                    mapView.destroy();
+                    mapView = null;
+                    done();
+                }, 0);
             });
 
-            it('should create a default symbol if a map was provided', function () {
+            it('should create a default symbol if a mapView was provided', function () {
                 widget = new FindAddress({
-                    map: map
+                    mapView
                 }).placeAt(win.body());
 
                 expect(widget.symbol).not.toBeNull();
             });
 
-            it('should assign a graphics layer if a map was provided', function () {
+            it('should assign a graphics layer if a mapView was provided', function () {
                 widget = new FindAddress({
-                    map: map
+                    mapView
                 }).placeAt(win.body());
-                widget.map.onLoad();
 
                 expect(widget.graphicsLayer).not.toBeNull();
                 expect(widget.graphicsLayer).not.toBe('default');
             });
 
             it('should use my graphics layer if provided', function () {
+                var id = 'layerId';
                 widget = new FindAddress({
-                    map: map,
-                    graphicsLayer: map.graphicsLayer
+                    mapView,
+                    graphicsLayer: new GraphicsLayer({id})
                 }).placeAt(win.body());
-                widget.map.onLoad();
 
-                expect(widget.graphicsLayer.id).toEqual('default');
+                expect(widget.graphicsLayer.id).toEqual(id);
             });
 
-            it('should zoom to a point after finding a valid address on a cached map', function () {
-                var point = new Point(result.result.location.x, result.result.location.y, map.spatialReference);
+            it('should zoom to a point after finding a valid address on a cached mapView', function (done) {
+                var point = new Point(result.data.result.location.x, result.data.result.location.y, mapView.spatialReference);
 
                 widget = new FindAddress({
-                    map: map,
-                    graphicsLayer: map.graphicsLayer
+                    mapView
                 }).placeAt(win.body());
                 widget.txtAddress.value = address;
                 widget.txtZone.value = zip;
@@ -214,65 +226,40 @@ require([
                     return d;
                 });
 
-                spyOn(widget.map, 'centerAndZoom').and.callThrough();
-
                 widget.geocodeAddress();
 
-                expect(widget.map.centerAndZoom).toHaveBeenCalledWith(point, 12);
-                expect(widget.map._graphic).not.toBeNull();
-            });
+                var watchHandle = widget.mapView.watch('animation', () => {
+                    watchHandle.remove();
 
-            it('should zoom to a point after finding a valid address on a dynamic map', function () {
-                var point = new Point(result.result.location.x, result.result.location.y, map.spatialReference);
+                    expect(widget.mapView.center).toEqual(point);
+                    expect(widget.mapView.zoom).toEqual(12);
 
-                map.getLevel = function () {
-                    return -1;
-                };
-
-                widget = new FindAddress({
-                    map: map,
-                    graphicsLayer: map.graphicsLayer,
-                    zoomLevel: 1
-                }).placeAt(win.body());
-                widget.txtAddress.value = address;
-                widget.txtZone.value = zip;
-
-                spyOn(widget, '_invokeWebService').and.callFake(function () {
-                    var d = new Deferred();
-                    d.resolve(result);
-
-                    return d;
+                    done();
                 });
-
-                spyOn(widget.map, 'centerAndZoom').and.callThrough();
-
-                widget.geocodeAddress();
-
-                expect(widget.map.centerAndZoom).toHaveBeenCalledWith(point, 6345876.028756473);
-                expect(widget.map._graphic).not.toBeNull();
             });
 
             it('should use constructor spatialReference first', function () {
                 widget = new FindAddress({
-                    map: map,
-                    graphicsLayer: map.graphicsLayer,
+                    mapView,
                     wkid: 10
                 }).placeAt(win.body());
 
                 expect(widget.wkid).toEqual(10);
             });
 
-            it('should use map spatialReference if no ctor param', function () {
-                map.spatialReference = new SpatialReference({
+            it('should use mapView spatialReference if no constructor param', function (done) {
+                mapView.spatialReference = new SpatialReference({
                     wkid: 3857
                 });
 
                 widget = new FindAddress({
-                    map: map,
-                    graphicsLayer: map.graphicsLayer
+                    mapView
                 }).placeAt(win.body());
 
-                expect(widget.wkid).toEqual(3857);
+                mapView.then(() => {
+                    expect(widget.wkid).toEqual(3857);
+                    done();
+                });
             });
         });
         describe('_validate', function () {
