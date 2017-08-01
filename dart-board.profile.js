@@ -12,6 +12,7 @@ var profile = (function () {
     };
     var ignores = {
         'dart-board/Gruntfile': true,
+        'dart-board/FindRouteMilepost': true
     };
 
     return {
