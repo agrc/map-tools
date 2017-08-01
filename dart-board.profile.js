@@ -3,15 +3,15 @@ var profile = (function () {
     var testResourceRe = /.*\/tests\//;
     var copyOnly = function (filename, mid) {
         var list = {
-            'map-tools/map-tools.profile': true,
-            'map-tools/package.json': true
+            'dart-board/dart-board.profile': true,
+            'dart-board/package.json': true
         };
         return (mid in list) ||
             (/^resources\//.test(mid) && !/\.css$/.test(filename)) ||
             /(png|jpg|jpeg|gif|tiff)$/.test(filename);
     };
     var ignores = {
-        'map-tools/Gruntfile': true
+        'dart-board/Gruntfile': true,
     };
 
     return {
