@@ -66,6 +66,18 @@ module.exports = function (grunt) {
             }
         },
         pkg: grunt.file.readJSON('package.json'),
+        sass: {
+            options: {sourceMap: true},
+            main: {
+                files: [{
+                    expand: true,
+                    cwd: 'resources',
+                    src: ['*.scss'],
+                    dest: 'resources',
+                    ext: '.css'
+                }]
+            }
+        },
         watch: {
             files: [
                 'Gruntfile.js',
@@ -76,6 +88,7 @@ module.exports = function (grunt) {
             ],
             tasks: [
                 'jasmine:main:build',
+                'sass',
                 'babel',
                 'eslint'
             ],
@@ -87,6 +100,7 @@ module.exports = function (grunt) {
 
     // Default task.
     grunt.registerTask('default', [
+        'sass',
         'babel',
         'connect',
         'jasmine:main:build',

@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "arcgis-js-api": "^4.7.x",
+    "grunt-sass": "2.1.0",
     "spinkit": "1.2.5"
   }
 }
