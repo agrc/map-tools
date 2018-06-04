@@ -27,6 +27,7 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-eslint": "20.1.0",
     "grunt-if-missing": "^1",
+    "grunt-sass": "2.1.0",
     "load-grunt-tasks": "4.0.0",
     "napa": "3.0.0",
     "phantomjs-prebuilt": "^2.1.14"
@@ -38,7 +39,6 @@
   },
   "dependencies": {
     "arcgis-js-api": "^4.7.x",
-    "grunt-sass": "2.1.0",
     "spinkit": "1.2.5"
   }
 }
