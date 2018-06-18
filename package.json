@@ -34,7 +34,8 @@
   },
   "dojoBuild": "map-tools.profile.js",
   "scripts": {
-    "test": "grunt travis --verbose"
+    "test": "grunt travis --verbose",
+    "prepublish": "grunt sass && grunt babel"
   },
   "dependencies": {
     "arcgis-js-api": "^4.7.x",
