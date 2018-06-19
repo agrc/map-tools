@@ -4,14 +4,14 @@ define([
 
     'esri/core/watchUtils',
     'esri/geometry/Point'
-], function (
+], (
     hash,
     ioQuery,
 
     watchUtils,
     Point
-) {
-    const updateExtentHash = function (mapView) {
+) => {
+    const updateExtentHash = (mapView) => {
         // summary:
         //      sets the extent props in the url hash
         // mapView: esri/views/mapView
@@ -37,7 +37,7 @@ define([
         return hash(ioQuery.objectToQuery(newProps), true);
     };
 
-    return function (mapView) {
+    return (mapView) => {
         // summary:
         //      sets up the url router for persisting the map extent
         // mapView: esri/views/mapView
