@@ -6,3 +6,4 @@ Gruntfile.js
 .eslintrc
 .gitattributes
 .grunt
+secrets.json*
