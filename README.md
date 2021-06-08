@@ -1,3 +1,5 @@
+# NOTE: This repo has been replaced by https://github.com/agrc/kitchen-sink
+
 # map-tools
 Tools for working with ESRI JavaScript API maps. Currently this package supports 
 
